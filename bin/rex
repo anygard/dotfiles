@@ -1,0 +1,157 @@
+#!/bin/bash
+
+# 
+# This script wrapps ansible-playbook and allows the same command to be run on
+# multiple hosts att once
+#
+
+verbose=
+user=
+timeout=
+sudo=
+hostfile=
+
+function usage() {
+        echo "Usage: $(basename $0) [-v|--verbose] [-h | --hostfile HOSTFILE] [-s|--sudo] [-u|--user USER] [-t|--timeout TIMEOUT] <hosts> <command line>"
+	echo "          <command line> is a complete command enclosed in \"s"
+	echo "          <hosts> is a commmaseparated list of hosnames eg. L001234,L001235"
+	echo
+	echo "Example:"
+	echo "		$(basename $0) -u foo -s  \"lsblk | grep sdb\" L001234,L001235"
+	echo
+        exit 1
+}
+
+function ci2fqdn() {
+        CI=$(echo $1 |  tr '[:lower:]' '[:upper:]')
+        domains=""
+        suffix=ams.se
+        for a in wpa ata upa udmz admz wdmz wp wt wu ws tdm; do
+                domains="$domains $a.$suffix"
+        done
+        domains="$domains i1.local u1.local"
+
+        for d in $domains ; do
+                FQDN="$CI.$d"
+                if host $FQDN &> /dev/null ; then
+                        echo $FQDN
+                        return 0
+                fi
+        done
+}
+
+function create_inv_file {
+	func=$1
+	hostsrc=$2
+	invtmp=$3
+
+	case "$func" in
+		csl)
+			hostlist=$(echo $hostsrc | tr "," "\n")
+			;;
+		file)
+			hostlist=$(cat $hostsrc)
+			;;
+		*)
+			echo "Broken on so many levels"
+	esac
+
+	for h in $hostlist ; do 
+		fqdn=$(ci2fqdn $h)
+		if echo $fqdn | grep 'CI'; then
+			echo "$h does not seem to be a valid host"
+                else
+			if [ -n "$fqdn" ]; then
+				echo $fqdn >> $invtmp
+			fi
+		fi
+	done
+}
+
+opts=$(getopt -o "vsh:t:u:g:f:" -l "verbose,sudo,hostfile:,timeout:,user:,setuser:,forks:" -n $(basename $0) -- "$@" )
+if [ $? != 0 ] ; then
+        usage
+fi
+eval set -- "$opts"
+
+while true ; do
+        case "$1" in
+                -v | --verbose)
+                        verbose="-vvv"
+                        shift
+                        ;;
+
+                -s | --sudo)
+                        become="--become --ask-become-pass"
+                        shift
+                        ;;
+
+                -g | --setuser)
+                        become="--become --ask-become-pass --become-method=su --become-user=$2"
+                        shift 2
+                        ;;
+
+                -u | --user)
+                        user="--user $2"
+                        shift 2
+                        ;;
+
+                -h | --hostfile)
+                        hostfile="$2"
+                        shift 2
+                        ;;
+
+                -t | --timeout)
+                        timout="--timeout $2"
+                        shift 2
+                        ;;
+
+                -f | --forks)
+                        forks="--forks $2"
+                        shift 2
+                        ;;
+
+                --)
+                        shift
+                        break
+                        ;;
+
+                *)
+                        echo "Unexpected error"
+			exit 2
+                        ;;
+
+        esac
+done
+
+invtmp=$(mktemp)
+if [ -z "$hostfile" ]; then
+	if [ $# -lt 2 ]; then
+		usage
+	fi
+	hosts=$1
+	cmdline=$2
+	create_inv_file 'csl' "$hosts" "$invtmp"
+else
+	if [ $# -lt 1 ] && [ ! -f $hostname ]; then
+		usage
+	fi
+	cmdline=$1
+	create_inv_file 'file' "$hostfile" "$invtmp"
+fi
+
+
+export ANSIBLE_HOST_KEY_CHECKING=False
+
+if [ -n "$verbose" ] ; then
+	echo
+	cat $invtmp
+	echo
+	setx='set -x'
+fi
+
+$setx
+ansible all $verbose $user --inventory-file=$invtmp $timeout $become $forks --module-name shell --args "$cmdline" --module-name raw 
+set +x
+
+#rm $invtmp
