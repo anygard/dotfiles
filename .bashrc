@@ -104,4 +104,4 @@ bind -x '"\C-gf":for-snippet'
 bind -x '"\C-gt":test'
 
 test -f ~/nygas.sh && . ~/nygas.sh
-alias config='/usr/bin/git --git-dir=.gitcfg/ --work-tree=/homenfs/nygas'
+alias gitcf='/usr/bin/git --git-dir=.gitcf/ --work-tree=/homenfs/nygas'
