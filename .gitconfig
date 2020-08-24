@@ -1,0 +1,13 @@
+[user]
+	name = Anders Nygård
+	email = anders.nygard@arbetsformedlingen.se
+[branch]
+	autosetuprebase = always
+[pull]
+	rebase = true
+[alias]
+	s = status
+	unstage = reset HEAD --
+	ci = commit -m
+	co = checkout
+	a = add
