@@ -95,8 +95,8 @@ function for-snippet {
 }
 
 function test {
-	echo "RLL>$READLINE_LINE<"
-	echo "RLP>$READLINE_POINT<"
+#	echo "RLL>$READLINE_LINE<"
+#	echo "RLP>$READLINE_POINT<"
 }
 
 bind -x '"\C-gu":uptime'
