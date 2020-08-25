@@ -6,6 +6,7 @@
 #alias lus="ldaputil server"
 
 alias .f='/usr/bin/git --git-dir=$HOME/.gitcf/ --work-tree=$HOME'
+alias .t='mux attach'
 
 function log() {
         echo -e "$(date --rfc-3339=ns)\t${FUNCNAME[1]} $1" >> /tmp/nygas.log
@@ -75,7 +76,7 @@ function envfilt() {
 }
 
 function SSH() {
-        echo "DEPRECATED use _s instead"
+        echo "DEPRECATED use .s instead"
 	log start
        	if which tmux &> /dev/null ; then
 	        tmux rename-window $1
@@ -84,7 +85,7 @@ function SSH() {
 	log end
 }
 
-function _s() {
+function .s() {
 	log start
        	if which tmux &> /dev/null ; then
 	        tmux rename-window $1
