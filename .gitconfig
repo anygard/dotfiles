@@ -6,8 +6,13 @@
 [pull]
 	rebase = true
 [alias]
-	s = status
-	unstage = reset HEAD --
-	ci = commit -m
-	co = checkout
-	a = add
+        s = status
+        st = status -sb
+        unstage = reset HEAD --
+        c = commit
+        co = checkout
+        a = add
+        ap = add -p
+        lg = log --oneline --graph --decorate --all
+        dc = diff --cached
+

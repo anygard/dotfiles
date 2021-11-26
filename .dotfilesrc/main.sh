@@ -14,4 +14,4 @@ echo
 echo "*** dotfilesrc ***"
 echo
 
-
+alias .f='/usr/bin/git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
