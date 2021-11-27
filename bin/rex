@@ -12,7 +12,7 @@ sudo=
 hostfile=
 
 function usage() {
-        echo "Usage: $(basename $0) [-v|--verbose] [-h | --hostfile HOSTFILE] [-s|--sudo] [-u|--user USER] [-t|--timeout TIMEOUT] <hosts> <command line>"
+        echo "Usage: $(basename $0) [-v|--verbose] [-p|--password] [-h | --hostfile HOSTFILE] [-s|--sudo] [-g|--setuser TARGETUSER] [-u|--user LOGINUSER] [-t|--timeout TIMEOUT] [-i|--inventory INVENTORY] [-l|--limit LIMIT] <hosts> <command line>"
 	echo "          <command line> is a complete command enclosed in \"s"
 	echo "          <hosts> is a commmaseparated list of hosnames eg. L001234,L001235"
 	echo
@@ -29,7 +29,7 @@ function ci2fqdn() {
         for a in wpa ata upa udmz admz wdmz wp wt wu ws tdm; do
                 domains="$domains $a.$suffix"
         done
-        domains="$domains i1.local u1.local"
+        domains="$domains dmz.i1.local i1.local u1.local"
 
         for d in $domains ; do
                 FQDN="$CI.$d"
@@ -38,6 +38,7 @@ function ci2fqdn() {
                         return 0
                 fi
         done
+        echo "no fqdn"
 }
 
 function create_inv_file {
@@ -46,19 +47,19 @@ function create_inv_file {
 	invtmp=$3
 
 	case "$func" in
-		csl)
-			hostlist=$(echo $hostsrc | tr "," "\n")
-			;;
-		file)
-			hostlist=$(cat $hostsrc)
-			;;
-		*)
-			echo "Broken on so many levels"
-	esac
+	csl)
+		hostlist=$(echo $hostsrc | tr "," "\n")
+		;;
+	file)
+		hostlist=$(cat $hostsrc)
+		;;
+	*)
+		echo "Broken on so many levels"
+		esac
 
 	for h in $hostlist ; do 
 		fqdn=$(ci2fqdn $h)
-		if echo $fqdn | grep 'CI'; then
+		if echo $fqdn | grep 'no fqdn'; then
 			echo "$h does not seem to be a valid host"
                 else
 			if [ -n "$fqdn" ]; then
@@ -68,7 +69,7 @@ function create_inv_file {
 	done
 }
 
-opts=$(getopt -o "vsh:t:u:g:f:" -l "verbose,sudo,hostfile:,timeout:,user:,setuser:,forks:" -n $(basename $0) -- "$@" )
+opts=$(getopt -o "vsph:t:u:g:f:i:l:" -l "verbose,sudo,password,hostfile:,timeout:,user:,setuser:,forks,inventory,limit:" -n $(basename $0) -- "$@" )
 if [ $? != 0 ] ; then
         usage
 fi
@@ -86,6 +87,11 @@ while true ; do
                         shift
                         ;;
 
+                -p | --password)
+                        password="--ask-pass"
+                        shift
+                        ;;
+
                 -g | --setuser)
                         become="--become --ask-become-pass --become-method=su --become-user=$2"
                         shift 2
@@ -98,6 +104,16 @@ while true ; do
 
                 -h | --hostfile)
                         hostfile="$2"
+                        shift 2
+                        ;;
+
+                -i | --inventory)
+                        invfname="$2"
+                        shift 2
+                        ;;
+
+                -l | --limit)
+                        limit="--limit $2"
                         shift 2
                         ;;
 
@@ -124,22 +140,26 @@ while true ; do
         esac
 done
 
-invtmp=$(mktemp)
-if [ -z "$hostfile" ]; then
-	if [ $# -lt 2 ]; then
-		usage
+if [ -z "$invfname" -a ! -f "$invfname" ] ; then
+	invtmp=$(mktemp)
+	if [ -z "$hostfile" ]; then
+		if [ $# -lt 2 ]; then
+			usage
+		fi
+		hosts=$1
+		cmdline=$2
+		create_inv_file 'csl' "$hosts" "$invtmp"
+	else
+		if [ $# -lt 1 ] && [ ! -f $hostname ]; then
+			usage
+		fi
+		cmdline=$1
+		create_inv_file 'file' "$hostfile" "$invtmp"
 	fi
-	hosts=$1
-	cmdline=$2
-	create_inv_file 'csl' "$hosts" "$invtmp"
 else
-	if [ $# -lt 1 ] && [ ! -f $hostname ]; then
-		usage
-	fi
+	invtmp=$invfname
 	cmdline=$1
-	create_inv_file 'file' "$hostfile" "$invtmp"
 fi
-
 
 export ANSIBLE_HOST_KEY_CHECKING=False
 
@@ -151,7 +171,9 @@ if [ -n "$verbose" ] ; then
 fi
 
 $setx
-ansible all $verbose $user --inventory-file=$invtmp $timeout $become $forks --module-name shell --args "$cmdline" --module-name raw 
+ansible all $verbose $password $user --inventory-file=$invtmp $timeout $become $forks $limit --module-name shell --args "$cmdline" --module-name raw 
 set +x
 
-#rm $invtmp
+if [ -z "$invfname" ] ; then 
+	rm $invtmp
+fi

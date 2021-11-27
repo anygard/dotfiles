@@ -9,17 +9,13 @@ if [ -n "$DOTFILESRC_RUNONLYONCE_GUARD" ]; then
 fi
 export DOTFILESRC_RUNONLYONCE_GUARD="There can be only one"
 
-
-echo
-echo "*** dotfilesrc ***"
-echo
-
-
-
-alias .f='/usr/bin/git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
+# temporary marker to visialize this is run
+#echo
+#echo "*** dotfilesrc ***"
+#echo
 
 # source .sh files in source.d
-pushd source.d > /dev/null
+pushd ~/.dotfilesrc/source.d > /dev/null
 
 for f in $(ls *.sh) ; do
 	source $f
