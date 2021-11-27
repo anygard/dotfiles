@@ -14,4 +14,15 @@ echo
 echo "*** dotfilesrc ***"
 echo
 
+
+
 alias .f='/usr/bin/git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
+
+# source .sh files in source.d
+pushd source.d > /dev/null
+
+for f in $(ls *.sh) ; do
+	source $f
+done
+
+popd > /dev/null
