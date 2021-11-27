@@ -15,4 +15,5 @@
         ap = add -p
         lg = log --oneline --graph --decorate --all
         dc = diff --cached
+        pf = pull --ff-only
 
