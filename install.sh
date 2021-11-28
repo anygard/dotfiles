@@ -1,5 +1,4 @@
 #/usr/bin/env bash
-set -x
 BARENAME=.dotfiles
 
 REPO="https://github.com/anygard/dotfiles.git"
@@ -93,4 +92,3 @@ echo
 echo and logout and in again
 
 popd > /dev/null
-set +x
