@@ -44,7 +44,7 @@ function git_info() {
 	BM='-'
 	[ -n "$ahead" ] && AM='A'
 	[ -n "$behind" ] && BM='B'
-	[ "$cleanws" != 1 ] && WM='*'
+	[ "$cleanws" != 0 ] && WM='*'
 
 	echo -n "${label}:${branch}[${WM}${AM}${BM}] "
 
