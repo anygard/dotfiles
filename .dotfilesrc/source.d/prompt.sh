@@ -27,25 +27,27 @@ function nonzero_return() {
 function git_info() {
         label=$1
 
-        local branch="$(git symbolic-ref --short HEAD 2>/dev/null || git describe --tags --always 2>/dev/null)"
-	[ -n "$branch" ] || return  # git branch not found
+	tmp=$(mktemp)
+	git status --porcelain --branch > $tmp 2> /dev/null && return 0
+	header=$(head -1 $tmp)
+	tail=$(mktemp)
+	tail -n +2 $tmp > $tail
+	branch=$(echo $header | cut -d' ' -f2 | cut -d'.' -f1)
+	behind=$(echo $header | grep -o 'behind')
+	ahead=$(echo $header | grep -o 'ahead')
+	cleanws=$(cat $tail | wc -l)
+	rm $tmp
+	rm $tail
 
-        # how many commits local branch is ahead/behind of remote?
-        local gstat=$(git status --porcelain --branch)
-        local stat="$(echo $gstat | grep '^##' | grep -o '\[.\+\]$')"
-        local aheadN="$(echo $stat | grep -o 'ahead \d\+' | grep -o '\d\+')"
-        local behindN="$(echo $stat | grep -o 'behind \d\+' | grep -o '\d\+')"
-        local cleanws="$(echo $gstat | grep -v '^##')"
-
-        WM='-'
+	WM='-'
 	AM='-'
-        BM='-'
-	[ -n "$aheadN" ] && AM='A'
-        [ -n "$behindN" ] && BM='B'
-	[ -z "$cleanws" ] && WM='*'
+	BM='-'
+	[ -n "$ahead" ] && AM='A'
+	[ -n "$behind" ] && BM='B'
+	[ "$cleanws" != 1 ] && WM='*'
 
-        WS=$(if git status 2> /dev/null | grep -q "nothing to commit" ; then echo "-" ; else echo "*" ; fi )
-        echo -n "$label:${branch}[${WS}${AM}${BM}] "
+	echo -n "${label}:${branch}[${WM}${AM}${BM}] "
+
 }
 
 function tmux() {
