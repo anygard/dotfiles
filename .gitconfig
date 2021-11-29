@@ -17,3 +17,5 @@
         dc = diff --cached
         pf = pull --ff-only
 
+[push]
+	default = simple
