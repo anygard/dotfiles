@@ -50,7 +50,9 @@ function git_info() {
 
 }
 
-function tmux() {
+function tmux_titles() {
+
+	[ -z "$TMUX" ] && return
 
         # tmux winow name
         #printf "\ek %s@%s:%s \e\\" "${USER}" "${HOSTNAME%%.*}" "${PWD/#$HOME/~}"
@@ -72,7 +74,7 @@ function render_preprompt() {
         git_info git >> $TF
         numjobs jobs >> $TF
         nonzero_return ec $EC >> $TF
-        tmux
+        tmux_titles
         #set -x
         if [ -s "$TF" ]; then
                 [ -n "$PROMPT_EXTRANL" -a "$PROMPT_EXTRANL" = Yes ] && echo
@@ -96,6 +98,6 @@ function render_preprompt() {
 
 export ORIGINAL_PREPROMPT_COMMAND=$PREPROMPT_COMMAND
 PROMPT_COMMAND=render_preprompt
-#PS1="\e]2;\u2\h\a\A \u@\h \w \\$ "
 PS1="\A \u@\h \w \\$ $reset"
+#echo -e "$reset"
 
