@@ -17,9 +17,9 @@ These are my dot files, Linux/UNIX CLI settings i prefer and want to bring with 
 
 The easiest way to use this repo is to go to your home directory on the server you want to install this on run this command.
 
-	curl https://raw.githubusercontent.com/anygard/dotfiles/master/install.sh | bash
+	curl https://raw.githubusercontent.com/anygard/dotfiles/install/install.sh | bash --online
 
-I too despice downloading and running unknown code like this, but if you consider using this you probably know how to download the script ahead of time and examine it before executing. I mostly added this command so I will have an easy copy&paste for my own needs. 
+I too despice downloading and running unknown code like this, but if you consider using this you probably know how to examine it before executing. I mostly added this command so I will have an easy copy&paste for my own needs. 
 
 
 ## Plan B (offline) 
@@ -56,4 +56,4 @@ Most files are going to be your own dotfiles so there is not much i can say abou
 This where i got the inspiration for this setup https://www.atlassian.com/git/tutorials/dotfiles it is also a good read if you want to know how you should use this repo. 
 The canonical location to find this repo in is https://github.com/anygard/dotfiles
 
-Good luck and happy hackking
+Good luck and happy hacking
