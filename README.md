@@ -56,4 +56,8 @@ Most files are going to be your own dotfiles so there is not much i can say abou
 This where i got the inspiration for this setup https://www.atlassian.com/git/tutorials/dotfiles it is also a good read if you want to know how you should use this repo. 
 The canonical location to find this repo in is https://github.com/anygard/dotfiles
 
+# Usage
+
+I keep separate local branches for day to day work, changes i want to "publish" are cherrypicked into the main branch, some times through several branches aliong the way. 
+
 Good luck and happy hacking
